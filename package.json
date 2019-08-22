@@ -1,0 +1,33 @@
+{
+  "name": "wiki",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "test": "ng test",
+    "lint": "ng lint",
+    "e2e": "ng e2e",
+	"local": "nodemon server.js"
+  },
+  "private": true,
+  "dependencies": {
+    "bcryptjs": "latest",
+    "bootstrap": "latest",
+    "googleapis": "latest",
+    "express": "latest",
+    "jsonwebtoken": "latest",
+    "mongoose": "latest",
+    "mongoose-unique-validator": "latest",
+    "multer": "latest",
+    "nodemailer": "latest",
+    "nodemon": "latest",
+    "body-parser": "latest",
+    "debug": "latest",
+    "nodemailer-sendgrid-transport": "latest",
+    "aws-sdk": "^2.497.0",
+    "cookie-parser": "^1.4.4",
+    "express-session": "^1.16.2",
+    "connect-mongo": "^3.0.0"
+  }
+}
