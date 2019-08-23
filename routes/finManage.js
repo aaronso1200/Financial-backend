@@ -612,10 +612,11 @@ router.post("/record/getRecordByAccount",authorize,(req,res,next) => {
       },
 
     },
-    {"$sort": {"recordDate": 1}},
+    {"$sort": {"recordDate": -1}},
     {"$skip": pageSize*(currentPage-1)},
     {"$limit": pageSize}
   ]).then(result => {
+    console.log(result);
  FinRecord.aggregate([{$match:{userId:mongoose.Types.ObjectId(req.userData.userId),finAccountId: mongoose.Types.ObjectId(req.body.account)}},
    {'$count':'counts'}]
  ).then(counts => {
