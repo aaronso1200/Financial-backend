@@ -1,7 +1,0 @@
-MONGO_ATLAS_PW=mongodb+srv://admin:G7oWOevsyvAsbhfM@cluster0-cqdpi.gcp.mongodb.net/test?retryWrites=true
-JWT_KEY=secret_my_json_signature
-SENDGRID_KEY=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
-AWS_ACCESS_KEY=AKIAIBEAM6653SEPIO3A
-AWS_SECRET_ACCESS_KEY=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
-IMAGE_URL=https://s3.amazonaws.com/www.fin150.com
-MONGO_DB_SESSION_SECRET=mongoSecretlkjalwpw3@
