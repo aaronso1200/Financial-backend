@@ -12,22 +12,23 @@
   },
   "private": true,
   "dependencies": {
+    "aws-sdk": "^2.497.0",
     "bcryptjs": "latest",
+    "body-parser": "latest",
     "bootstrap": "latest",
-    "googleapis": "latest",
+    "connect-mongo": "^3.0.0",
+    "cookie-parser": "^1.4.4",
+    "debug": "latest",
+    "exceljs": "^1.15.0",
     "express": "latest",
+    "express-session": "^1.16.2",
+    "googleapis": "latest",
     "jsonwebtoken": "latest",
     "mongoose": "latest",
     "mongoose-unique-validator": "latest",
     "multer": "latest",
     "nodemailer": "latest",
-    "nodemon": "latest",
-    "body-parser": "latest",
-    "debug": "latest",
     "nodemailer-sendgrid-transport": "latest",
-    "aws-sdk": "^2.497.0",
-    "cookie-parser": "^1.4.4",
-    "express-session": "^1.16.2",
-    "connect-mongo": "^3.0.0"
+    "nodemon": "latest"
   }
 }

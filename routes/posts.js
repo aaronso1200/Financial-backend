@@ -190,6 +190,7 @@ router.delete('/:id',authorize,(req,res,next)=>{
   }
 );
 
+
 router.post("/random",(req,res,next)=> {
   // fs.readFile("C:\\Users\\user\\Desktop\\project\\backend\\images\\uhuhuh-1548572171165.png", function (err, data) { });
   // const url = req.protocol + '://' + req.get("host");
@@ -211,5 +212,7 @@ router.post("/random",(req,res,next)=> {
     });
   })
 });
+
+
 
 module.exports = router;
