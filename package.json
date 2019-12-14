@@ -22,6 +22,7 @@
     "exceljs": "^1.15.0",
     "express": "latest",
     "express-session": "^1.16.2",
+    "fs": "0.0.1-security",
     "googleapis": "latest",
     "jsonwebtoken": "latest",
     "mongoose": "latest",

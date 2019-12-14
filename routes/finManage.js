@@ -5,15 +5,73 @@ const path = require("path");
 const FinAccount = require("../models/finAccount");
 const FinRecord = require("../models/finRecord");
 const authorize = require("../middleware/authorize");
+const BankStatement = require("../models/bankStatement");
+
 const router= express.Router();
 const fs = require("fs");
+const pdfreader = require("pdfreader");
+const pdfParser = require("pdf-parse");
+const pdfjs = require('pdfjs-dist');
+const os = require("os");
+const aws = require("aws-sdk");
 
+const s3 = new aws.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+})
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const isValid = MIME_TYPE_MAP[file.mimetype];
+    let error = new Error("Invalid mime type");
+    if (isValid) {
+      error = null;
+    }
+    cb(error,path.join(__dirname,"../images/"));
+  },
+  filename: (req,file,cb)=>{
+    const name = file.originalname.toLowerCase().split(' ').join('-');
+    const ext= MIME_TYPE_MAP[file.mimetype];
+    cb(null, name + '-' + Date.now() + '.' +ext)
+  }
+});
 
 const DateJS= require("../functions/date");
 
 const finAccountSession = FinAccount;
 const finRecordSession = FinRecord;
+
+
+router.post("/updateRecordByPdf",authorize,multer().single("bankStatement"),async (req,res,next)=> {
+// console.log(req.file);
+   var  path =  'bankStatement/'+req.userData.userId + '/' + req.body.finAccountId + '/bank_statement-' +Date.now() + '-' + req.body.year +'-' +req.body.month +'.pdf';
+  const params = {
+    Bucket: 'fin150-data', // pass your bucket name
+    Key: path,
+    ContentType: req.file.mimeType,
+    ACL: 'private',
+    Body: req.file.buffer
+  };
+  s3.upload(params, function(s3Err, data) {
+    if (s3Err) {
+      console.log('fail');
+       res.status(400).json({message:'Upload BankStatement Fail'});
+       throw s3Err;}
+    console.log(`File uploaded successfully at ${data.Location}`);
+    const bankStatement = new BankStatement({
+    filePath: path,
+    finAccountId: req.body.finAccountId,
+    userId: req.userData.userId,
+    month: req.body.month,
+    year: req.body.year
+   });
+    bankStatement.save().then(bankStatement=> {
+      res.status(201).json({message:'Save BankStatement Successful'})
+    }).catch( () => {
+        res.status(400).json({message: 'Save BankStatement Fail'})});
+  })
+
+});
 
 router.post("/create",authorize,(req,res,next)=> {
   // console.log(req.body);

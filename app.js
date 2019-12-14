@@ -18,7 +18,7 @@ const db = mongoose.connection;
 const logtime = new Date();
 const conn =mongoose
   .connect(
-    "mongodb+srv://admin:G7oWOevsyvAsbhfM@cluster0-cqdpi.gcp.mongodb.net/test?retryWrites=true",
+      process.env.MONGO_ATLAS_PW,
     { useNewUrlParser: true, ssl: true}
   )
   .then(() => {
