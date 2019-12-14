@@ -141,7 +141,8 @@ router.post("/record/create",authorize,(req,res,next) => {
       recordType: req.body.recordType.toLowerCase(),
       finAccountId: req.body.finAccountFrom, //Related to finAccount Id
       userId: req.userData.userId,  //Related to User
-      modifiedDate: Date.now()
+      modifiedDate: Date.now(),
+      tags: []
     });
     finRecord.save().then(
       res.status(201).json({
@@ -221,8 +222,27 @@ router.post("/record/listByDate",authorize,(req,res,next) => {
   let toDate = new Date(fromDate.getTime()+1000*60*60*24);
   // console.log('From Date: ' +fromDate);
   // console.log('To Date: '+ toDate);
-  FinRecord.find({recordDate:{'$gte' : fromDate,"$lt": toDate },userId: req.userData.userId}).select('-userId -recordDate')
-    .populate({path: 'finAccountId', select: 'name icon'}).then(result =>{
+  FinRecord.aggregate([{$match:{userId:mongoose.Types.ObjectId(req.userData.userId),recordDate:{'$gte' : fromDate,"$lt": toDate }}},
+    {$lookup: {
+        "from": "finaccounts",
+        "localField": "finAccountId",
+        "foreignField": "_id",
+        "as": "FinAccount"
+      }},
+    {"$unwind": "$FinAccount"},
+    {   '$project': {
+        'id': '$_id',
+        'amount': '$amount',
+        'description': "$description",
+        'finAccount': "$FinAccount.name",
+        'finAccountId': "$FinAccount._id",
+        'icon': "$FinAccount.icon",
+        'recordType': "$recordType",
+        'recordDate': '$recordDate',
+      },
+
+    },
+  ]).then(result =>{
     // console.log('Record/listByDate: ' + result);
     return res.status(200).json({
       records: result
@@ -234,6 +254,8 @@ router.post("/record/listByDate",authorize,(req,res,next) => {
     })}
   )
 });
+
+//FinRecord.find({recordDate:{'$gte' : fromDate,"$lt": toDate },userId: req.userData.userId}).select('-userId -recordDate').populate({path: 'finAccountId', select: 'name icon'})
 
 // Icon Update
 router.post("/finAccount/updateIcon",authorize,(req,res,next) => {
@@ -620,7 +642,7 @@ router.post("/record/getRecordByAccount",authorize,(req,res,next) => {
  FinRecord.aggregate([{$match:{userId:mongoose.Types.ObjectId(req.userData.userId),finAccountId: mongoose.Types.ObjectId(req.body.account)}},
    {'$count':'counts'}]
  ).then(counts => {
-   res.status(200).json({message: 'Get Record By account success!', result:result, counts:counts[0]})
+   res.status(200).json({message: 'Get Record By account success!', records:result, counts:counts[0]})
  })
   })
 });
