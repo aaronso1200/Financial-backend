@@ -1,17 +1,102 @@
 const express = require("express");
 const multer = require("multer");
 const mongoose = require("mongoose");
-
+const path = require("path");
 const FinAccount = require("../models/finAccount");
 const FinRecord = require("../models/finRecord");
 const authorize = require("../middleware/authorize");
+const BankStatement = require("../models/bankStatement");
+
 const router= express.Router();
 const fs = require("fs");
+const os = require("os");
+const aws = require("aws-sdk");
+
+const s3 = new aws.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+})
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const isValid = MIME_TYPE_MAP[file.mimetype];
+    let error = new Error("Invalid mime type");
+    if (isValid) {
+      error = null;
+    }
+    cb(error,path.join(__dirname,"../images/"));
+  },
+  filename: (req,file,cb)=>{
+    const name = file.originalname.toLowerCase().split(' ').join('-');
+    const ext= MIME_TYPE_MAP[file.mimetype];
+    cb(null, name + '-' + Date.now() + '.' +ext)
+  }
+});
 
 const DateJS= require("../functions/date");
 
 const finAccountSession = FinAccount;
 const finRecordSession = FinRecord;
+
+router.post("/downloadfile",authorize,(req,res,next)=> {
+  console.log(req.body);
+  BankStatement.findOne({userId:req.userData.userId,month:req.body.month,year:req.body.year,finAccountId:req.body.finAccountId}).then((data) => {
+    console.log(data);
+    if (!data) {
+      res.status(200).json({message: "File not found!",file:null,fileName:null});
+      return false
+    }
+    console.log(data);
+    var link = data.filePath+ data.fileName;
+    const params = {
+      Bucket: 'fin150-data',
+      Key: link
+    };
+    // res.attachment('abc.pdf');
+    // s3.getObject(params).createReadStream().pipe(res);
+   s3.getObject(params,(err,file) => {
+     if (err) return err;
+      res.status(200).json({message:"Get file successful",file:file.Body,fileName:data.fileName})
+    });
+  });
+
+});
+
+
+router.post("/updateRecordByPdf",authorize,multer().single("bankStatement"),async (req,res,next)=> {
+// console.log(req.file);
+   var  filePath =  'bankStatement/'+req.userData.userId + '/' + req.body.finAccountId + '/';
+   var fileName = 'bank_statement-' +Date.now() + '-' + req.body.year +'-' +req.body.month +'.pdf';
+  const params = {
+    Bucket: 'fin150-data', // pass your bucket name
+    Key: filePath + fileName,
+    ContentType: req.file.mimeType,
+    ACL: 'private',
+    Body: req.file.buffer
+  };
+  s3.upload(params, function(s3Err, data) {
+    if (s3Err) {
+      console.log('fail');
+       res.status(400).json({message:'Upload BankStatement Fail'});
+       throw s3Err;}
+    console.log(`File uploaded successfully at ${data.Location}`);
+    const bankStatement = new BankStatement({
+    filePath: filePath,
+    fileName: fileName,
+    finAccountId: req.body.finAccountId,
+    userId: req.userData.userId,
+    month: req.body.month,
+    year: req.body.year
+   });
+    bankStatement.save().then(bankStatement=> {
+      console.log('save bankstatement successful');
+      res.status(201).json({message:'Save BankStatement Successful'})
+    }).catch( (ex) => {
+      console.log(ex);
+        res.status(400).json({message: 'Save BankStatement Fail'})});
+  })
+
+});
 
 router.post("/create",authorize,(req,res,next)=> {
   // console.log(req.body);
@@ -638,14 +723,21 @@ router.post("/record/getRecordByAccount",authorize,(req,res,next) => {
     {"$skip": pageSize*(currentPage-1)},
     {"$limit": pageSize}
   ]).then(result => {
-    console.log(result);
+    // console.log(result);
+    if (result.length === 0) {
+      res.status(200).json({message:'No Record In this account', records: result,counts: 0});
+      return
+    }
  FinRecord.aggregate([{$match:{userId:mongoose.Types.ObjectId(req.userData.userId),finAccountId: mongoose.Types.ObjectId(req.body.account)}},
    {'$count':'counts'}]
  ).then(counts => {
+
    res.status(200).json({message: 'Get Record By account success!', records:result, counts:counts[0]})
  })
   })
 });
+
+
 
 module.exports = router;
 

@@ -58,7 +58,7 @@ router.post("", authorize,multer({storage: storage, limits: {fileSize: 1024*1024
       const post = new Post({
         title: req.body.title,
         content: req.body.content,
-        imagePath: process.env.IMAGE_URL + "/images/" + req.file.filename,
+        imagePath: process.env.S3_URL + "/images/" + req.file.filename,
         creator: req.userData.userId
       });
       post.save().
@@ -190,6 +190,7 @@ router.delete('/:id',authorize,(req,res,next)=>{
   }
 );
 
+
 router.post("/random",(req,res,next)=> {
   // fs.readFile("C:\\Users\\user\\Desktop\\project\\backend\\images\\uhuhuh-1548572171165.png", function (err, data) { });
   // const url = req.protocol + '://' + req.get("host");
@@ -211,5 +212,7 @@ router.post("/random",(req,res,next)=> {
     });
   })
 });
+
+
 
 module.exports = router;

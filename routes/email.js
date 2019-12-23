@@ -32,7 +32,7 @@ router.post('/sendVerificationCode',authorize, (req,res,next) => {
 
   })
 });
-//5c7e81f34e834237f079dc66
+
 
 router.get('/verify',authorize,(req,res,next)=> {
   verificationCode.findOne({id:req.userData.userId}).then(result => {

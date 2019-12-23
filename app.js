@@ -10,6 +10,7 @@ const userRoutes = require("./routes/user");
 const findRoutes = require("./routes/find");
 const emailRoutes = require("./routes/email");
 const finManageRoutes = require("./routes/finManage");
+const reportRoutes = require("./routes/report");
 
 const app = express();
 const db = mongoose.connection;
@@ -17,7 +18,7 @@ const db = mongoose.connection;
 const logtime = new Date();
 const conn =mongoose
   .connect(
-    process.env.DB_CONN_STRING,
+      process.env.MONGO_ATLAS_PW,
     { useNewUrlParser: true, ssl: true}
   )
   .then(() => {
@@ -69,6 +70,7 @@ app.use("/user", userRoutes);
 app.use("/find", findRoutes);
 app.use("/email", emailRoutes);
 app.use("/finManage", finManageRoutes);
+app.use("/report", reportRoutes);
 // export the file to other files, automactcally express
 // all the components under app
 module.exports = app;

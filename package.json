@@ -22,14 +22,15 @@
     "dotenv": "^8.1.0",
     "express": "latest",
     "express-session": "^1.16.2",
+    "fs": "0.0.1-security",
+    "exceljs": "^1.15.0",
     "googleapis": "latest",
     "jsonwebtoken": "latest",
     "mongoose": "latest",
     "mongoose-unique-validator": "latest",
     "multer": "latest",
     "nodemailer": "latest",
-    "nodemailer-sendgrid-transport": "latest",
     "nodemon": "latest",
-    "vue": "^2.6.10"
+    "nodemailer-sendgrid-transport": "latest"
   }
 }
