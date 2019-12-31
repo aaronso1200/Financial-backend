@@ -38,15 +38,15 @@ const DateJS= require("../functions/date");
 const finAccountSession = FinAccount;
 const finRecordSession = FinRecord;
 
-router.post("/downloadfile",authorize,(req,res,next)=> {
-  console.log(req.body);
+router.post("/downloadBankStatement",authorize,(req,res,next)=> {
+  // console.log(req.body);
   BankStatement.findOne({userId:req.userData.userId,month:req.body.month,year:req.body.year,finAccountId:req.body.finAccountId}).then((data) => {
-    console.log(data);
+    // console.log(data);
     if (!data) {
       res.status(200).json({message: "File not found!",file:null,fileName:null});
       return false
     }
-    console.log(data);
+    // console.log(data);
     var link = data.filePath+ data.fileName;
     const params = {
       Bucket: 'fin150-data',
@@ -56,14 +56,44 @@ router.post("/downloadfile",authorize,(req,res,next)=> {
     // s3.getObject(params).createReadStream().pipe(res);
    s3.getObject(params,(err,file) => {
      if (err) return err;
-      res.status(200).json({message:"Get file successful",file:file.Body,fileName:data.fileName})
+      res.status(200).json({message:"Get file successful",file:file.Body,fileName:data.fileName,file_id:data._id})
     });
   });
 
 });
 
+router.post("/deleteBankStatement",authorize,(req,res,next)=> {
+  BankStatement.findOne({_id: req.body.id,userId:req.userData.userId}).then( (result)=> {
+    return  new Promise((resolve,reject) => {
+      let link = result.filePath+ result.fileName;
+      console.log(link);
+      const params = {
+        Bucket: 'fin150-data',
+        Key: link
+      };
+      s3.deleteObject(params,function(err, data) {
+        if (err) {console.log(err, err.stack);
+          reject('failure')
+        }  // error
+        else
+        resolve('success');                 // deleted
+      });
+      })}).then((result)=> {
+        BankStatement.deleteOne({_id: req.body.id,userId:req.userData.userId}).then(result => {
+          if (result.n >0) {
+            res.status(201).json({
+              message: "Delete Successful!"
+            })} else {
+            res.status(400).json({
+              message: "Delete finRecord fail"
+            })
+          }
+        })
+  }).catch(result => {
+    res.status(400).json({message: 'Delete Bankstatement Fail'})});
+});
 
-router.post("/updateRecordByPdf",authorize,multer().single("bankStatement"),async (req,res,next)=> {
+router.post("/uploadBankStatement",authorize,multer().single("bankStatement"),async (req,res,next)=> {
 // console.log(req.file);
    var  filePath =  'bankStatement/'+req.userData.userId + '/' + req.body.finAccountId + '/';
    var fileName = 'bank_statement-' +Date.now() + '-' + req.body.year +'-' +req.body.month +'.pdf';
