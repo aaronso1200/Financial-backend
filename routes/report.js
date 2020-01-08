@@ -3,6 +3,7 @@ const express = require("express");
 const authorize = require("../middleware/authorize");
 const router= express.Router();
 const path = require("path");
+const FinRecord = require("../models/finRecord");
 
 const excel = require('exceljs');
 

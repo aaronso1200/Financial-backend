@@ -40,25 +40,32 @@ const finRecordSession = FinRecord;
 
 router.post("/downloadBankStatement",authorize,(req,res,next)=> {
   // console.log(req.body);
-  BankStatement.findOne({userId:req.userData.userId,month:req.body.month,year:req.body.year,finAccountId:req.body.finAccountId}).then((data) => {
-    // console.log(data);
-    if (!data) {
+  BankStatement.find({userId:req.userData.userId,month:req.body.month,year:req.body.year,finAccountId:req.body.finAccountId}).sort([['_id', -1]]).then((result)=> {
+    console.log(result);
+    if (result.length === 0) {
+      console.log('no result');
       res.status(200).json({message: "File not found!",file:null,fileName:null});
       return false
     }
-    // console.log(data);
-    var link = data.filePath+ data.fileName;
-    const params = {
-      Bucket: 'fin150-data',
-      Key: link
-    };
-    // res.attachment('abc.pdf');
-    // s3.getObject(params).createReadStream().pipe(res);
-   s3.getObject(params,(err,file) => {
-     if (err) return err;
-      res.status(200).json({message:"Get file successful",file:file.Body,fileName:data.fileName,file_id:data._id})
-    });
-  });
+    let index = 0;
+   if (req.body.fileNumber && req.body.fileNumber -1 <= result.length) {
+     index = req.body.fileNumber -1;
+   }
+    let data = result[index];
+      var link = data.filePath+ data.fileName;
+      const params = {
+        Bucket: process.env.S3_DATA_BUCKET_NAME,
+        Key: link
+      };
+      // res.attachment('abc.pdf');
+      // s3.getObject(params).createReadStream().pipe(res);
+     s3.getObject(params,(err,file) => {
+       if (err) {console.log(err); return err;}
+        res.status(200).json({message:"Get file successful",file:file.Body,fileName:data.fileName,file_id:data._id, file_count: result.length})
+      });
+  }).catch(error => {
+    console.log(error);
+    res.status(400).json({message: 'Get bank statement Fail'})})
 
 });
 
